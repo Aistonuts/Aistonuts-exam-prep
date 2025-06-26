@@ -25,7 +25,20 @@ jobs:
     - name: Display SoftUni username
       run: echo "dimosoftuni"
 
+  deploy:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.MY_RENDER_API_KEY }}
+      - name: Wait for deploy
+        run: sleep 60
+
   run-ui-tests:
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout the repo
