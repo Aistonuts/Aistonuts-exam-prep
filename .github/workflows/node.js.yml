@@ -49,8 +49,8 @@ jobs:
         node-version: 18.x
         cache: 'npm'
     - name: Install project dependencies
-      run: npm install
+      run: npm ci
     - name: Install Playwright
       run: npx playwright install
     - name: Run UI tests for the application
-      run: npx playwright test
+      run: npm run test:ui
