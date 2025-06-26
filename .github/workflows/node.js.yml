@@ -1,4 +1,4 @@
-name: Build and Test and Deploy
+name: Build Test and Deploy
 
 on:
   push:
@@ -7,49 +7,49 @@ on:
     branches: [ "main" ]
 
 jobs:
-  security_tests:
+  build-and-unit-test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Clone the GitHub repository on the machine
-      uses: actions/checkout@v3
-
-    - name: Use Node.js 20
-      uses: actions/setup-node@v3
+    - name: Checkout the code
+      uses: actions/checkout@v4
+    - name: Use Node.js 20x
+      uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 20.x
         cache: 'npm'
-    - name: Install program dependencies
+    - name: Install npm dependencies
       run: npm install
+    - name: Execute the unit tests
+      run: npm run test:unit
+    - name: Display softuni username
+      run: echo 'dimomitev'
 
-    - name: Run npm security tests
-      run: npm audit
-
-  build_test:
+  execute-ui-test:
+    needs: build-and-unit-test
     runs-on: ubuntu-latest
-
     steps:
-    - name: Clone the GitHub repository on the machine
-      uses: actions/checkout@v3
-
-    - name: Use Node.js 20
-      uses: actions/setup-node@v3
+    - name: Checkout the code
+      uses: actions/checkout@v4
+    - name: Use Node.js 20x
+      uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 20.x
         cache: 'npm'
-    - name: Install program dependencies
+    - name: Install npm dependencies
       run: npm install
-
-    - name: Run integration tests
-      run: npm run test
+    - name: Install Playwright browsers
+      run:  npx playwright install
+    - name: Start the application
+      run:  npm run start &
+    - name: Execute the UI tests
+      run:  npm run test:ui
 
   deploy:
+    needs: execute-ui-test
     runs-on: ubuntu-latest
-    needs: [ "build_test", "security_tests" ]
     steps:
-        - uses: actions/checkout@v3
-        - uses: JorgeLNJunior/render-deploy@v1.4.4
-          with:
-            service_id: ${{ secrets.MY_RENDER_SERVICE_ID }}
-            api_key: ${{ secrets.MY_RENDER_API_KEY }}
-            wait_deploy: true 
+      - name: Deploy to production
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.MY_RENDER_API_KEY }}
